@@ -5,15 +5,12 @@ import Link from "next/link";
 import { cn } from "./lib/utils";
 import { useState } from "react";
 
-const imageKitAPI = process.env.NEXT_PUBLIC_URL_ENDPOINT;
-
 const Home = () => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const handleOnclick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const clickedText = e.currentTarget.textContent?.trim();
     setActiveTab(clickedText || null);
   };
-
   return (
     <div>
       <div className="px-4 pt-4 flex justify-evenly text-gray font-bold border-b-[1px] border-border-gray">
