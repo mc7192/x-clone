@@ -13,6 +13,7 @@ body {
   --color-icon-blue: #1d9bf0;
   --color-icon-green: #00ba7c;
   --color-icon-pink: #f91880;
+  --color-input-gray: #202327;
 
   --breakpoint-xs: 500px;
   --breakpoint-sm: 600px;
