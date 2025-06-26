@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id
+  email       String       @unique
+  username    String       @unique
+  displayName String?
+  bio         String?
+  location    String?
+  job         String?
+  website     String?
+  img         String?
+  cover       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  followers   Follow[]     @relation("UserFollowers")
+  followings  Follow[]     @relation("UserFollowings")
+  likes       Like[]
+  posts       Post[]
+  saves       SavedPosts[]
+}
+
+model Post {
+  id           Int          @id @default(autoincrement())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  desc         String?      @db.VarChar(255)
+  img          String?
+  imgHeight    Int?
+  video        String?
+  isSensitive  Boolean      @default(false)
+  userId       String
+  rePostId     Int?
+  parentPostId Int?
+  likes        Like[]
+  parentPost   Post?        @relation("PostComments", fields: [parentPostId], references: [id])
+  comments     Post[]       @relation("PostComments")
+  rePost       Post?        @relation("RePosts", fields: [rePostId], references: [id])
+  rePosts      Post[]       @relation("RePosts")
+  user         User         @relation(fields: [userId], references: [id])
+  saves        SavedPosts[]
+
+  @@index([parentPostId], map: "Post_parentPostId_fkey")
+  @@index([rePostId], map: "Post_rePostId_fkey")
+  @@index([userId], map: "Post_userId_fkey")
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    String
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([postId], map: "Like_postId_fkey")
+  @@index([userId], map: "Like_userId_fkey")
+}
+
+model SavedPosts {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    String
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([postId], map: "SavedPosts_postId_fkey")
+  @@index([userId], map: "SavedPosts_userId_fkey")
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  followerId  String
+  followingId String
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User     @relation("UserFollowings", fields: [followingId], references: [id])
+
+  @@index([followerId], map: "Follow_followerId_fkey")
+  @@index([followingId], map: "Follow_followingId_fkey")
+}
