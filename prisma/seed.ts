@@ -1,21 +1,98 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const prisma = new PrismaClient();
 
+async function generateUser(): Promise<User> {
+  const ai = new GoogleGenAI({});
+  const prompt = `
+  Generate a JSON object for a user database with the following fields:
+  - id: string (UUID format)
+  - email: string (valid email format, no duplicates)
+  - username: string (alphanumeric, 5-12 chars)
+  - displayName: string (human-readable name)
+  - bio: string (10 words about a fictional person)
+  - location: string (random real-world city/country)
+  - job: string (realistic job title)
+  - website: string (valid URL)
+  Return ONLY the JSON, without markdown or additional text.
+`;
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [prompt],
+  });
+  const data = response.text?.replace(/^```json|```$/g, "").trim();
+  if (!data) throw new Error("No text returned from model");
+  const res = JSON.parse(data);
+  return res;
+}
+
+async function getRandomImageUrl({
+  width,
+  height,
+  query,
+}: {
+  width: number;
+  height: number;
+  query: "landscape" | "portrait";
+}): Promise<string> {
+  const res = await fetch(
+    `https://api.unsplash.com/photos/random?client_id=${process.env.UNSPLASH_ACCESS_KEY}&query=${query}`,
+    { cache: "no-store" }
+  );
+  const data = await res.json();
+  return `${data.urls.raw}&w=${width}&h=${height}&fit=crop&dpr=2`;
+}
+
 async function main() {
-  // Create 5 users with unique details
   const users = [];
   for (let i = 1; i <= 5; i++) {
+    const userData = await generateUser();
+    const coverUrl = await getRandomImageUrl({
+      width: 1500,
+      height: 500,
+      query: "landscape",
+    });
+    const profileUrl = await getRandomImageUrl({
+      width: 400,
+      height: 400,
+      query: "portrait",
+    });
+    const { id, email, username, displayName, bio, location, job, website } =
+      userData;
+
+    const newEmail = userData.email.replace(
+      "@",
+      `+${Math.floor(Math.random() * 10000)}@`
+    );
+
+    // Check if email or username already exists
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username: userData.username }],
+      },
+    });
+
+    if (existing) {
+      console.log(
+        `Skipping duplicate user with email: ${email} or username: ${userData.username}`
+      );
+      continue; // skip to next iteration
+    }
+
     const user = await prisma.user.create({
       data: {
-        id: `user${i}`,
-        email: `user${i}@example.com`,
-        username: `user${i}`,
-        displayName: `User ${i}`,
-        bio: `Hi I'm user${i}. Welcome to my profile!`,
-        location: `USA`,
-        job: `Developer`,
-        website: `google.com`,
+        id: id,
+        email: newEmail,
+        username: username,
+        displayName: displayName,
+        bio: bio,
+        location: location,
+        job: job,
+        website: website,
+        cover: coverUrl || "",
+        img: profileUrl || "",
       },
     });
     users.push(user);

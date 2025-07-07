@@ -3,13 +3,64 @@ import Link from "next/link";
 import Feed from "@/app/components/Feed";
 import { prisma } from "@/prisma/client";
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { GoogleGenAI } from "@google/genai";
+import { User } from "@prisma/client";
+
+async function generateUser(): Promise<User> {
+  const ai = new GoogleGenAI({});
+  const prompt = `
+  Generate a JSON object for a user database with the following fields:
+  - id: string (UUID format)
+  - email: string (valid email format)
+  - username: string (alphanumeric, 5-12 chars)
+  - displayName: string (human-readable name)
+  - bio: string (50-100 words about a fictional person)
+  - location: string (random real-world city/country)
+  - job: string (realistic job title)
+  - website: string (valid URL)
+  Return ONLY the JSON, without markdown or additional text.
+`;
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [prompt],
+  });
+  const data = response.text?.replace(/^```json|```$/g, "").trim();
+  if (!data) throw new Error("No text returned from model");
+  const res = JSON.parse(data);
+  return res;
+}
+
+async function getRandomImageUrl({
+  width,
+  height,
+  query,
+}: {
+  width: number;
+  height: number;
+  query: "landscape" | "portrait";
+}): Promise<string> {
+  const res = await fetch(
+    `https://api.unsplash.com/photos/random?client_id=${process.env.UNSPLASH_ACCESS_KEY}&query=${query}`,
+    { cache: "no-store" }
+  );
+  const data = await res.json();
+  return `${data.urls.raw}&w=${width}&h=${height}&fit=crop&dpr=2`;
+}
 
 const page = async ({ params }: { params: { username: string } }) => {
+  const { userId } = await auth();
   const { username } = await params;
   const user = await prisma.user.findUnique({
     where: { username: username },
+    include: {
+      _count: { select: { followers: true, followings: true } },
+      followings: userId ? { where: { followerId: userId } } : undefined,
+    },
   });
   if (!user) return notFound();
+  const newUser = await generateUser();
+  console.log(newUser);
 
   return (
     <div>
@@ -17,16 +68,28 @@ const page = async ({ params }: { params: { username: string } }) => {
         <Link href="/">
           <Image src="/icons/back.svg" alt="back" width={24} height={24} />
         </Link>
-        <h1 className="font-bold text-lg">{user.username}</h1>
+        <h1 className="font-bold text-lg">{user.displayName}</h1>
       </div>
       {/* Info */}
       <div>
         <div className="relative w-full">
           <div className="w-full aspect-[3/1] relative">
-            <Image src="/general/cover.jpg" alt="" width={600} height={200} />
+            <Image
+              src={user.cover || ""}
+              alt=""
+              width={600}
+              height={200}
+              id="cover"
+            />
           </div>
           <div className="w-1/6 aspect-square rounded-full overflow-hidden border-4 border-black bg-gray-300 absolute left-4 -translate-y-1/2">
-            <Image src="/general/avatar.png" alt="" width={100} height={100} />
+            <Image
+              src={user.img || ""}
+              alt=""
+              width={100}
+              height={100}
+              id="profile"
+            />
           </div>
           <div className="flex w-full items-center justify-end gap-2 p-2">
             <div className="w-9 h-9 flex items-center justify-center rounded-full border-[1px] border-gray-500 cursor-pointer">
