@@ -1,5 +1,7 @@
+import { SignOutButton } from "@clerk/nextjs";
 import CustomImage from "./Image";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 
 const menuList = [
   {
@@ -64,7 +66,8 @@ const menuList = [
   },
 ];
 
-const LeftBar = () => {
+const LeftBar = async () => {
+  const user = await auth();
   return (
     <div className="h-screen sticky top-0 flex flex-col justify-between pt-2 pb-8">
       <div className="flex flex-col gap-4 text-lg items-center 2xl:items-start">
@@ -117,7 +120,7 @@ const LeftBar = () => {
         </Link>
       </div>
       {/* {USER} */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 relative rounded-full overflow-hidden">
             <CustomImage
@@ -132,7 +135,9 @@ const LeftBar = () => {
             <span className="text-sm text-gray">@mclorde1</span>
           </div>
         </div>
-        <div className="hidden 2xl:block cursor-pointer font-bold">...</div>
+        <div className="hidden 2xl:block cursor-pointer text-black bg-white rounded-full px-4 py-2">
+          <SignOutButton />
+        </div>
       </div>
     </div>
   );

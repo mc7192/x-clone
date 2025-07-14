@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import CustomImage from "./Image";
-import { shareAction } from "../lib/actions";
+import { addPost } from "../lib/actions";
 import Image from "next/image";
 import ImageEditor from "./ImageEditor";
+import { useUser } from "@clerk/nextjs";
 
 const Share = () => {
   const [media, setMedia] = useState<File | null>(null);
@@ -23,15 +24,24 @@ const Share = () => {
   };
 
   const previewURL = media ? URL.createObjectURL(media) : null;
+  const [state, formAction, isPending] = useActionState(addPost, {
+    success: false,
+    error: false,
+  });
+  const { user } = useUser();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  useEffect(() => {
+    if (state.success) formRef?.current?.reset();
+  }, [state]);
+  if (!user) {
+    return null;
+  }
 
   return (
-    <form
-      className="p-4 flex gap-4"
-      action={(formData) => shareAction(formData, settings)}
-    >
+    <form className="p-4 flex gap-4" action={formAction}>
       <div className="relative w-10 h-10 rounded-full over-flow-hidden">
         <CustomImage
-          src="general/avatar.png"
+          src={user?.imageUrl}
           alt=""
           width={100}
           height={100}
@@ -39,6 +49,20 @@ const Share = () => {
         />
       </div>
       <div className="flex-1 flex flex-col gap-4">
+        <input
+          type="text"
+          name="imgType"
+          value={settings.type}
+          hidden
+          readOnly
+        />
+        <input
+          type="text"
+          name="isSensitive"
+          value={settings.sensitive ? "true" : "false"}
+          hidden
+          readOnly
+        />
         <input
           type="text"
           placeholder="What is Happening?"
@@ -148,9 +172,15 @@ const Share = () => {
               className="cursor-pointer"
             />
           </div>
-          <button className="bg-white text-black font-bold rounded-full py-2 px-4">
-            Post
+          <button
+            className="bg-white text-black font-bold rounded-full py-2 px-4 hover:bg-slate-100 hover:cursor-pointer"
+            disabled={isPending}
+          >
+            {isPending ? "Posting" : "Post"}
           </button>
+          {state.error && (
+            <span className="text-red-300 p-4">Something went wrong!</span>
+          )}
         </div>
       </div>
     </form>

@@ -62,11 +62,6 @@ async function main() {
     const { id, email, username, displayName, bio, location, job, website } =
       userData;
 
-    const newEmail = userData.email.replace(
-      "@",
-      `+${Math.floor(Math.random() * 10000)}@`
-    );
-
     // Check if email or username already exists
     const existing = await prisma.user.findFirst({
       where: {
@@ -84,7 +79,7 @@ async function main() {
     const user = await prisma.user.create({
       data: {
         id: id,
-        email: newEmail,
+        email: email,
         username: username,
         displayName: displayName,
         bio: bio,

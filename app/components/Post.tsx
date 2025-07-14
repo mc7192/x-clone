@@ -4,6 +4,7 @@ import PostInfo from "./PostInfo";
 import PostInteractions from "./PostInteractions";
 import Link from "next/link";
 import { format } from "timeago.js";
+import Image from "next/image";
 
 type UserSummary = {
   displayName: string | null;
@@ -53,22 +54,14 @@ const Post = ({
         </div>
       )}
       {/* POST CONTENT */}
-      <div className={`flex gap-4 ${type === "status" && "flex-col"}`}>
+      <div className={`flex gap-4`}>
         {/* AVATAR */}
-        <div
-          className={`${
-            type === "status" && "hidden"
-          } relative w-10 h-10 rounded-full overflow-hidden`}
-        >
-          <CustomImage
-            src={
-              originalPost?.user?.img ||
-              "https://source.unsplash.com/1500x500/?abstract,texture"
-            }
+        <div className={`relative w-10 h-10 rounded-full overflow-hidden`}>
+          <Image
+            src={originalPost?.user?.img || "/general/noProfile.webp"}
             alt=""
             width={100}
             height={100}
-            tr={true}
           />
         </div>
         {/* CONTENT */}
@@ -86,7 +79,7 @@ const Post = ({
                   } relative w-10 h-10 rounded-full overflow-hidden`}
                 >
                   <CustomImage
-                    src={originalPost?.user?.img}
+                    src={originalPost?.user?.img || "/general/noProfile.webp"}
                     alt=""
                     width={100}
                     height={100}
@@ -115,7 +108,9 @@ const Post = ({
             <PostInfo />
           </div>
           {/* TEXT & MEDIA */}
-          <Link href={`/lamaWebDev/status/123`}>
+          <Link
+            href={`/${originalPost.user.username}/status/${originalPost.id}`}
+          >
             <p className={`${type === "status" && "text-lg"}`}>
               {originalPost?.desc}
             </p>
@@ -133,6 +128,7 @@ const Post = ({
             <span className="text-gray">8:41 PM · Dec 5, 2024</span>
           )}
           <PostInteractions
+            postId={originalPost.id}
             count={originalPost?._count}
             isLiked={!!originalPost?.likes.length}
             isReposted={!!originalPost?.rePosts.length}
