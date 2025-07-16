@@ -2,6 +2,8 @@ import { SignOutButton } from "@clerk/nextjs";
 import CustomImage from "./Image";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
+import Socket from "./Socket";
+import Notification from "./Notification";
 
 const menuList = [
   {
@@ -16,12 +18,12 @@ const menuList = [
     link: "/",
     icon: "explore.svg",
   },
-  {
-    id: 3,
-    name: "Notification",
-    link: "/",
-    icon: "notification.svg",
-  },
+  // {
+  //   id: 3,
+  //   name: "Notification",
+  //   link: "/",
+  //   icon: "notification.svg",
+  // },
   {
     id: 4,
     name: "Messages",
@@ -83,21 +85,28 @@ const LeftBar = async () => {
         </Link>
         {/* {MENU} */}
         <div className="flex flex-col gap-4">
-          {menuList.map((item) => (
-            <Link
-              href={item.link}
-              key={item.id}
-              className="p-2 rounded-full hover:bg-[#181818] flex items-center gap-4"
-            >
-              <CustomImage
-                src={`icons/${item.icon}`}
-                alt={item.name}
-                width={24}
-                height={24}
-                tr={true}
-              />
-              <span className="hidden 2xl:inline">{item.name}</span>
-            </Link>
+          {menuList.map((item, i) => (
+            <div key={item.id || i}>
+              {i === 2 && (
+                <div>
+                  <Notification />
+                </div>
+              )}
+              <Link
+                href={item.link}
+                key={item.id}
+                className="p-2 rounded-full hover:bg-[#181818] flex items-center gap-4"
+              >
+                <CustomImage
+                  src={`icons/${item.icon}`}
+                  alt={item.name}
+                  width={24}
+                  height={24}
+                  tr={true}
+                />
+                <span className="hidden 2xl:inline">{item.name}</span>
+              </Link>
+            </div>
           ))}
         </div>
         <Link
@@ -139,6 +148,7 @@ const LeftBar = async () => {
           <SignOutButton />
         </div>
       </div>
+      <Socket />
     </div>
   );
 };

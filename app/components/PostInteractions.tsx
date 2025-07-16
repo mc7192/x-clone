@@ -1,14 +1,18 @@
 "use client";
 import { useOptimistic, useState } from "react";
 import { likePost, rePost, savePost } from "../lib/actions";
+import { socket } from "@/socket";
+import { useUser } from "@clerk/nextjs";
 
 const PostInteractions = ({
+  username,
   postId,
   count,
   isLiked,
   isReposted,
   isSaved,
 }: {
+  username: string;
   postId: number;
   count: { likes: number; rePosts: number; comments: number };
   isLiked: boolean;
@@ -22,42 +26,6 @@ const PostInteractions = ({
     isSaved: isSaved,
     isrePosted: isReposted,
   });
-
-  const likeAction = async () => {
-    addOptimisticCount("like");
-    await likePost(postId);
-    setState((prev) => {
-      return {
-        ...prev,
-        likes: prev.isLiked ? prev.likes - 1 : prev.likes + 1,
-        isLiked: !prev.isLiked,
-      };
-    });
-  };
-
-  const rePostAction = async () => {
-    addOptimisticCount("rePost");
-    await rePost(postId);
-    setState((prev) => {
-      return {
-        ...prev,
-        rePosts: prev.isrePosted ? prev.rePosts - 1 : prev.rePosts + 1,
-        isrePosted: !prev.isrePosted,
-      };
-    });
-  };
-
-  const saveAction = async () => {
-    addOptimisticCount("save");
-    await savePost(postId);
-    setState((prev) => {
-      return {
-        ...prev,
-        isSaved: !prev.isSaved,
-      };
-    });
-  };
-
   const [optimisticCount, addOptimisticCount] = useOptimistic(
     state,
     (prev, type: "like" | "rePost" | "save") => {
@@ -84,6 +52,65 @@ const PostInteractions = ({
       return prev;
     }
   );
+
+  const { user } = useUser();
+  if (!user) return;
+
+  const likeAction = async () => {
+    if (!optimisticCount.isLiked) {
+      socket.emit("sendNotification", {
+        receiverUsername: username,
+        data: {
+          senderUsername: user.username,
+          type: "like",
+          link: `/${username}/status/${postId}`,
+        },
+      });
+    }
+    addOptimisticCount("like");
+    await likePost(postId);
+    setState((prev) => {
+      return {
+        ...prev,
+        likes: prev.isLiked ? prev.likes - 1 : prev.likes + 1,
+        isLiked: !prev.isLiked,
+      };
+    });
+  };
+
+  const rePostAction = async () => {
+    if (!optimisticCount.isrePosted) {
+      socket.emit("sendNotification", {
+        receiverUsername: username,
+        data: {
+          senderUsername: user.username,
+          type: "rePost",
+          link: `/${username}/status/${postId}`,
+        },
+      });
+    }
+    addOptimisticCount("rePost");
+    await rePost(postId);
+    setState((prev) => {
+      return {
+        ...prev,
+        rePosts: prev.isrePosted ? prev.rePosts - 1 : prev.rePosts + 1,
+        isrePosted: !prev.isrePosted,
+      };
+    });
+  };
+
+  const saveAction = async () => {
+    addOptimisticCount("save");
+    await savePost(postId);
+    setState((prev) => {
+      return {
+        ...prev,
+        isSaved: !prev.isSaved,
+      };
+    });
+  };
+
   return (
     <div className="flex items-center justify-between my-2 gap-4 xl:gap-16 text-gray">
       <div className="flex items-center justify-between flex-1">

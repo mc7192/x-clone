@@ -1,6 +1,6 @@
 # 🐦 Social Media Clone
 
-A modern social media clone built with **Next.js App Router**, featuring user authentication, infinite scrolling, and real-time post feeds.
+A modern social media clone built with **Next.js App Router**, featuring user authentication, infinite scrolling, real-time post feeds, and robust schema validation.
 
 ## 🚀 Features
 
@@ -10,22 +10,28 @@ A modern social media clone built with **Next.js App Router**, featuring user au
 - 🌀 **Infinite Scrolling** with `react-infinite-scroll-component`
 - 🕒 **Relative timestamps** via `timeago.js`
 - ⚛️ **React Query** for efficient client-side data fetching & caching
+- 🧠 **Zod** for type-safe and declarative schema validation
+- 🧩 **Socket.IO** for real-time communication (e.g., notifications, online presence)
+- 🆔 **UUID** for generating consistent unique identifiers
 - 🥪 Clean and scalable architecture with server components & API routes
 
 ---
 
 ## 💠 Tech Stack
 
-| Tool             | Purpose                                  |
-| ---------------- | ---------------------------------------- |
-| **Next.js**      | React framework with App Router          |
-| **Clerk**        | Authentication & user management         |
-| **Prisma**       | Type-safe ORM for interacting with MySQL |
-| **MySQL**        | Relational database                      |
-| **Docker**       | Containerized local development          |
-| **React Query**  | Data fetching, caching, and pagination   |
-| **timeago.js**   | Human-readable relative timestamps       |
-| **Tailwind CSS** | Utility-first styling framework          |
+| Tool             | Purpose                                           |
+| ---------------- | ------------------------------------------------- |
+| **Next.js**      | React framework with App Router                   |
+| **Clerk**        | Authentication & user management                  |
+| **Prisma**       | Type-safe ORM for interacting with MySQL          |
+| **MySQL**        | Relational database                               |
+| **Docker**       | Containerized local development                   |
+| **React Query**  | Data fetching, caching, and pagination            |
+| **Socket.IO**    | Real-time features (e.g. live updates, presence)  |
+| **uuid**         | Generation of unique IDs (e.g., messages, events) |
+| **zod**          | Schema validation and type safety                 |
+| **timeago.js**   | Human-readable relative timestamps                |
+| **Tailwind CSS** | Utility-first styling framework                   |
 
 ---
 
@@ -157,13 +163,3 @@ _Add screenshots or demo GIFs of your feed, infinite scroll, and post UI._
 - [ ] Real-time updates (e.g., using WebSockets)
 
 ---
-
-## 🤝 Credits
-
-Created by [Your Name](https://github.com/yourusername)
-
----
-
-## 📝 License
-
-MIT

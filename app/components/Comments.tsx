@@ -3,8 +3,9 @@ import Post from "./Post";
 import Image from "next/image";
 import { Post as PostType } from "@prisma/client";
 import { useUser } from "@clerk/nextjs";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { addComment } from "../lib/actions";
+import { socket } from "@/socket";
 type CommentsWithDetails = PostType & {
   user: { displayName: string | null; username: string; img: string | null };
   _count: { likes: number; rePosts: number; comments: number };
@@ -28,6 +29,19 @@ const Comments = ({
     error: false,
   });
 
+  useEffect(() => {
+    if (state.success) {
+      socket.emit("sendNotification", {
+        receiverUsername: username,
+        data: {
+          senderUsername: user?.username,
+          type: "comment",
+          link: `/${username}/status/${postId}`,
+        },
+      });
+    }
+  }, [state.success]);
+
   return (
     <div>
       {user && (
@@ -40,7 +54,7 @@ const Comments = ({
             alt=""
             width={100}
             height={100}
-            className="relative w-10 h-10 rounded-full overflow-hidden"
+            className="relative w-10 h-10 rounded-full overflow-hidden -z-10"
           />
           <input type="number" name="postId" hidden readOnly value={postId} />
           <input type="text" name="username" hidden readOnly value={username} />

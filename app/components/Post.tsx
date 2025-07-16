@@ -56,7 +56,9 @@ const Post = ({
       {/* POST CONTENT */}
       <div className={`flex gap-4`}>
         {/* AVATAR */}
-        <div className={`relative w-10 h-10 rounded-full overflow-hidden`}>
+        <div
+          className={`relative w-10 h-10 rounded-full overflow-hidden -z-10`}
+        >
           <Image
             src={originalPost?.user?.img || "/general/noProfile.webp"}
             alt=""
@@ -76,7 +78,7 @@ const Post = ({
                 <div
                   className={`${
                     type !== "status" && "hidden"
-                  } relative w-10 h-10 rounded-full overflow-hidden`}
+                  } relative w-10 h-10 rounded-full overflow-hidden -z-10`}
                 >
                   <CustomImage
                     src={originalPost?.user?.img || "/general/noProfile.webp"}
@@ -128,6 +130,7 @@ const Post = ({
             <span className="text-gray">8:41 PM · Dec 5, 2024</span>
           )}
           <PostInteractions
+            username={originalPost.user.username}
             postId={originalPost.id}
             count={originalPost?._count}
             isLiked={!!originalPost?.likes.length}
